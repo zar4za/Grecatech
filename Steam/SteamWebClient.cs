@@ -41,7 +41,7 @@ namespace Grecatech.Steam
         public delegate Task<Captcha> CaptchaHandler(string captchaGid);
         public delegate Task<SteamGuardCode> SteamGuardHandler();
 
-        public async Task<bool> AuthorizeAsync(string username, string password)
+        public async Task<string> AuthorizeAsync(string username, string password)
         {
             RSAModel rsa = await GetRSAKeysAsync(username);
             string encryptedPassword = RSAProvider.EncryptPassword(password, rsa);
@@ -49,6 +49,7 @@ namespace Grecatech.Steam
             LoginResponse? loginResponse = null;
             Captcha? captcha = null;
             SteamGuardCode? code = null;
+            string loginJson;
             do
             {
                 if (loginResponse != null && loginResponse.CaptchaNeeded)
@@ -60,7 +61,7 @@ namespace Grecatech.Steam
                 HttpContent content = new LoginPost(username, encryptedPassword, rsa, captcha!, code!).ToHttpContent();
                 var response = await _client.PostAsync("https://steamcommunity.com/login/dologin", content);
                 response.EnsureSuccessStatusCode();
-                var loginJson = await response.Content.ReadAsStringAsync();
+                loginJson = await response.Content.ReadAsStringAsync();
 
                 loginResponse = JsonSerializer.Deserialize<LoginResponse>(loginJson)!;
                 if (code != null && loginResponse.TwoFactor)
@@ -76,7 +77,7 @@ namespace Grecatech.Steam
             else
                 _warningHandler?.Invoke("Не удалось авторизоваться!");
 
-            return loginResponse.Success;
+            return loginJson;
         }
         private async Task<RSAModel> GetRSAKeysAsync(string username)
         {
