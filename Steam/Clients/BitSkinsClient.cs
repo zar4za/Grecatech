@@ -3,7 +3,7 @@ using Newtonsoft.Json.Linq;
 
 namespace Grecatech.Steam.Clients 
 {
-    internal class BitSkinsClient : IMarketClient
+    public class BitSkinsClient : IMarketClient
     {
         #region IMarketClient inteface
         public Task<decimal> GetBalanceAsync()
@@ -43,6 +43,14 @@ namespace Grecatech.Steam.Clients
 
             JObject balance = JObject.Parse(response);
             return Convert.ToDecimal(balance["available_balance"]);
+        }
+
+        public async void GetAllItemPricesAsync(string apiKey, string code, string appId)
+        {
+            var url = new Uri($"{RootUrl}/get_all_item_prices/?api_key={apiKey}&code={code}&app_id={appId}");
+            string response = await _client.GetStringAsync(url);
+
+
         }
     }
 }
