@@ -2,10 +2,12 @@
 
 namespace Grecatech.Steam.Clients
 {
-    internal interface IMarketClient
+    public interface IMarketClient
     {
-        public Task<decimal> GetBalanceAsync();
-        Task<BuffPage> GetItemsAsync(int page, decimal maxPriceCny, string quality);
-        Task<Dictionary<string, decimal>> GetPricesAsync(Item[] items);
+        public Task<decimal> GetActiveBalanceAsync();
+        public Task<decimal> GetItemPriceAsync(string marketHashName);
+        public Task<bool> BuyItemAsync(string marketHashName, decimal price);
+        public Task<bool> SellItemAsync(string marketHashName);
+
     }
 }

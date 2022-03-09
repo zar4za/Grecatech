@@ -4,45 +4,53 @@ using System.Net;
 
 namespace Grecatech.Steam.Clients
 {
-    internal class Buff163Client : IMarketClient
+    public class Buff163Client : IMarketClient
     {
         private const string RootUrl = "https://buff.163.com/api";
         private readonly string _session;
-        private HttpClient _client;
+        private HttpClient _httpClient;
         private long _nonce => DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
-        public Buff163Client(string session)
+        public Buff163Client(HttpClient client, string session)
         {
             _session = session;
-            var handler = new HttpClientHandler
-            {
-                CookieContainer = new CookieContainer()
-            };
-            handler.CookieContainer.Add(new Uri("https://buff.163.com/"), new Cookie("session", _session));
-            _client = new HttpClient(handler);
-        }
-        public async Task<BuffPage> GetItemsAsync(int pageNum, decimal maxPrice, string quality)
-        {
-            var query = $"/market/goods?game=csgo&page_num={pageNum}&max_price={maxPrice}&quality={quality}&&use_suggestion=0&trigger=undefined_trigger&_={_nonce}";
-            var response = await _client.GetAsync(RootUrl + query);
-            return BuffPage.Parse(await response.Content.ReadAsStringAsync());
+            _httpClient = client;
+
+            //Cookie Authorization
+            var cookieUrl = new Uri("https://buff.163.com/");
+            var request = new HttpRequestMessage(HttpMethod.Get, cookieUrl);
+            request.Headers.Add("Cookie", $"session={_session}");
+            _httpClient.Send(request);
         }
 
-        public async Task<decimal> GetBalanceAsync()
+        public async Task<decimal> GetActiveBalanceAsync()
         {
-            var query = $"/asset/get_brief_asset/?_={_nonce}";
-            var response = await _client.GetAsync(RootUrl + query);
+            var url = new Uri($"{RootUrl}/asset/get_brief_asset/?_={_nonce}");
+            var response = await _httpClient.GetStringAsync(url);
+            var json = JObject.Parse(response);
 
-            JObject json = JObject.Parse(await response.Content.ReadAsStringAsync());
-            if (json["code"]?.Value<string>() == "OK")
+            if (json.ContainsKey("code") && json["code"].Value<string>() == "OK")
             {
-                decimal cny = json["data"]["alipay_amount"].Value<decimal>();
-                return cny;
+                var cny = json["data"]["alipay_amount"].Value<decimal>();
+                var provider = new Money.CurrencyRateProvider(_httpClient);
+                var rate = await provider.GetUsdToCny();
+
+                return cny / rate;
             }
             return decimal.Zero;
         }
 
-        public Task<Dictionary<string, decimal>> GetPricesAsync(Item[] items)
+        public Task<decimal> GetItemPriceAsync(string marketHashName)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<bool> BuyItemAsync(string marketHashName, decimal price)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<bool> SellItemAsync(string marketHashName)
         {
             throw new NotImplementedException();
         }
