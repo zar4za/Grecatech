@@ -1,6 +1,4 @@
-﻿using Grecatech.Steam.Clients.Models;
-using Newtonsoft.Json.Linq;
-using System.Net;
+﻿using Newtonsoft.Json.Linq;
 
 namespace Grecatech.Steam.Clients
 {
@@ -9,7 +7,8 @@ namespace Grecatech.Steam.Clients
         private const string RootUrl = "https://buff.163.com/api";
         private readonly string _session;
         private HttpClient _httpClient;
-        private long _nonce => DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        private static long Nonce => DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        private Dictionary<string, int> _itemIds;
 
         public Buff163Client(HttpClient client, string session)
         {
@@ -20,40 +19,67 @@ namespace Grecatech.Steam.Clients
             var cookieUrl = new Uri("https://buff.163.com/");
             var request = new HttpRequestMessage(HttpMethod.Get, cookieUrl);
             request.Headers.Add("Cookie", $"session={_session}");
-            _httpClient.Send(request);
+            _httpClient.SendAsync(request);
+
+            _itemIds = JObject.Parse(File.ReadAllText("idsb.json")).ToObject<Dictionary<string, int>>();
         }
 
         public async Task<decimal> GetActiveBalanceAsync()
         {
-            var url = new Uri($"{RootUrl}/asset/get_brief_asset/?_={_nonce}");
+            var url = new Uri($"{RootUrl}/asset/get_brief_asset/?_={Nonce}");
             var response = await _httpClient.GetStringAsync(url);
             var json = JObject.Parse(response);
 
-            if (json.ContainsKey("code") && json["code"].Value<string>() == "OK")
-            {
-                var cny = json["data"]["alipay_amount"].Value<decimal>();
-                var provider = new Money.CurrencyRateProvider(_httpClient);
-                var rate = await provider.GetUsdToCny();
+            if(!json.ContainsKey("code") || json["code"].Value<string>() != "OK")
+                return decimal.Zero;
 
-                return cny / rate;
-            }
-            return decimal.Zero;
+            var cny = json["data"]["alipay_amount"].Value<decimal>();
+            var rate = await GetUsdConvertRateAsync();
+
+            return cny * rate;
         }
 
-        public Task<decimal> GetItemPriceAsync(string marketHashName)
+        public async Task<decimal> GetItemPriceAsync(string marketHashName)
+        {
+            if (!_itemIds.ContainsKey(marketHashName))
+                return decimal.Zero;
+
+            var id = _itemIds[marketHashName];
+            var url = new Uri($"{RootUrl}/market/goods/sell_order?game=csgo&goods_id={id}&page_num=1&sort_by=price.asc&mode=&allow_tradable_cooldown=0&_={Nonce}");
+            var response = await _httpClient.GetStringAsync(url);
+            var json = JObject.Parse(response);
+
+            if (!json.ContainsKey("code") || json["code"].Value<string>() != "OK")
+                return decimal.Zero;
+
+            var cny = json["data"]["items"][0]["price"].Value<decimal>();
+            var rate = await GetUsdConvertRateAsync();
+
+            return cny / rate;
+        }
+
+        public async Task<bool> BuyItemAsync(string marketHashName, decimal price)
         {
             throw new NotImplementedException();
         }
 
-        public Task<bool> BuyItemAsync(string marketHashName, decimal price)
+        //POST: https://buff.163.com/market/sell_order/preview/manual_plus
+        public async Task<bool> SellItemAsync(string marketHashName)
         {
             throw new NotImplementedException();
         }
 
-        public Task<bool> SellItemAsync(string marketHashName)
+        public async Task<decimal> GetUsdConvertRateAsync()
         {
-            throw new NotImplementedException();
+            var url = new Uri($"https://buff.163.com/account/api/user/info?_={Nonce}");
+            var response = await _httpClient.GetStringAsync(url);
+            var json = JObject.Parse(response);
+
+            if (!json.ContainsKey("code") || json["code"].Value<string>() != "OK")
+                return decimal.Zero;
+
+            var rate = json["data"]["buff_price_currency_rate_base_cny"].Value<decimal>();
+            return rate;
         }
     }
-
 }
