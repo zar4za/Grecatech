@@ -26,7 +26,7 @@ namespace GrecatechTests.Steam.Clients
             mockHandler.When("https://buff.163.com/api/asset/get_brief_asset/*").Respond("application/json", mockResponse);
             mockHandler.When("https://buff.163.com/account/api/user/info").Respond("application/json", mockCurrency);
             var httpClient = new HttpClient(mockHandler);
-            var buff163Client = new Buff163Client(httpClient, session);
+            var buff163Client = new Buff163Client(httpClient, session, "idsb.json");
 
             //Act
             var balance = await buff163Client.GetActiveBalanceAsync();

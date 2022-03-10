@@ -22,11 +22,6 @@ namespace Grecatech.Steam.Clients
             _secretKey = secretKey;
         }
 
-        public Task<bool> BuyItemAsync(string marketHashName, decimal price)
-        {
-            throw new NotImplementedException();
-        }
-
         public async Task<decimal> GetActiveBalanceAsync()
         {
             var endPoint = "/account/v1/balance";
@@ -43,6 +38,11 @@ namespace Grecatech.Steam.Clients
             throw new NotImplementedException();
         }
 
+        public Task<long?> BuyItemAsync(string marketHashName, decimal price)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<bool> SellItemAsync(string marketHashName)
         {
             throw new NotImplementedException();
@@ -55,7 +55,6 @@ namespace Grecatech.Steam.Clients
             _httpClient.DefaultRequestHeaders.Add("X-Sign-Date", timestamp.ToString());
             _httpClient.DefaultRequestHeaders.Add("X-Request-Sign", Sign(method, query, body, timestamp));
         }
-
         private string Sign(HttpMethod method, string query, string body, long timestamp)
         {
             var signaturePrefix = "dmar ed25519 ";

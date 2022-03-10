@@ -23,7 +23,7 @@ public class BitSkinsClient// : IMarketClient
     }
 
     public readonly decimal Fees = 0.9m;
-    public async Task<decimal> GetAccountBalanceAsync()
+    public async Task<decimal> GetActiveBalanceAsync()
     {
         var url = new Uri($"{RootUrl}/get_account_balance/?api_key={_apiKey}&code={_totp.ComputeTotp()}");
         var response = await _client.GetStringAsync(url);
@@ -93,12 +93,15 @@ public class BitSkinsClient// : IMarketClient
         var response = await _client.GetStringAsync(url);
     }
 
-    public async void BuyItemAsync(string itemIds, string prices, string appId, bool autoTrade,
-        bool allowTradeDelayedPurchases)
+    public async Task<long?> BuyItemAsync(string marketHashName, decimal price)
     {
-        var url = new Uri(
-            $"{RootUrl}/buy_item/?api_key={_apiKey}&code={_totp.ComputeTotp()}&item_ids={itemIds}&prices={prices}&app_id={appId}&auto_trade={autoTrade}&allow_trade_delayed_purchases={allowTradeDelayedPurchases}");
+        var item = await GetInventoryOnSaleAsync(marketHashName);
+        if (item == null || item?.Value != price)
+            return null;
+
+        var url = new Uri($"{RootUrl}/buy_item/?api_key={_apiKey}&code={_totp.ComputeTotp()}&item_ids={item?.Key}&prices={price.ToString("F2").Replace(',','.')}&allow_trade_delayed_purchases=false");
         var response = await _client.GetStringAsync(url);
+        return null;
     }
 
     public async void SellItemAsync(string itemIds, string prices, string appId)
@@ -147,22 +150,21 @@ public class BitSkinsClient// : IMarketClient
         var response = await _client.GetStringAsync(url);
     }
 
-    #region IMarketClient inteface
-
-    public Task<decimal> GetBalanceAsync()
+    private async Task<KeyValuePair<string, decimal>?> GetInventoryOnSaleAsync(string marketHashName)
     {
-        throw new NotImplementedException();
-    }
+        var url = new Uri($"{RootUrl}/get_inventory_on_sale/?api_key={_apiKey}&code={_totp.ComputeTotp()}&sort_by=price&order=asc&market_hash_name={marketHashName}&show_trade_delayed_items=-1");
+        var response = await _client.GetStringAsync(url);
+        var json = JObject.Parse(response);
 
-    public Task<BuffPage> GetItemsAsync(int page, decimal maxPriceCny, string quality)
-    {
-        throw new NotImplementedException();
-    }
+        if (!json.ContainsKey("status") || !(json["status"].Value<string>() == "success"))
+            return null;
 
-    public Task<Dictionary<string, decimal>> GetPricesAsync(Item[] items)
-    {
-        throw new NotImplementedException();
-    }
+        var id = json["data"]["items"]?[0]["item_id"].Value<string>();
+        var price = json["data"]["items"]?[0]["price"].Value<decimal>();
+        
+        if (id == null || price == null)
+            return null;
 
-    #endregion
+        return new KeyValuePair<string, decimal>(id, price.Value);
+    }
 }

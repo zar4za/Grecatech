@@ -4,14 +4,17 @@ namespace Grecatech.Steam.Clients
 {
     public class Buff163Client : IMarketClient
     {
+        public readonly decimal Fees = 0.975m;
+
         private const int PointDigits = 4;
         private const string RootUrl = "https://buff.163.com/api";
-        private readonly string _session;
-        private HttpClient _httpClient;
-        private static long Nonce => DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-        private Dictionary<string, int> _itemIds;
 
-        public Buff163Client(HttpClient client, string session)
+        private readonly string _session;
+
+        private Dictionary<string, int> _itemIds;
+        private HttpClient _httpClient;
+
+        public Buff163Client(HttpClient client, string session, string itemIdPath)
         {
             _session = session;
             _httpClient = client;
@@ -22,10 +25,10 @@ namespace Grecatech.Steam.Clients
             request.Headers.Add("Cookie", $"session={_session}");
             _httpClient.SendAsync(request);
 
-            _itemIds = JObject.Parse(File.ReadAllText("idsb.json")).ToObject<Dictionary<string, int>>();
+            _itemIds = JObject.Parse(File.ReadAllText(itemIdPath)).ToObject<Dictionary<string, int>>();
         }
 
-        public readonly decimal Fees = 0.975m;
+        private static long Nonce => DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
         public async Task<decimal> GetActiveBalanceAsync()
         {
@@ -59,7 +62,7 @@ namespace Grecatech.Steam.Clients
             return await ConvertToUsd(cny);
         }
 
-        public async Task<bool> BuyItemAsync(string marketHashName, decimal price)
+        public async Task<long?> BuyItemAsync(string marketHashName, decimal price)
         {
             throw new NotImplementedException();
         }
