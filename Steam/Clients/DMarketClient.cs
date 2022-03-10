@@ -7,65 +7,53 @@ using System.Web;
 
 namespace Grecatech.Steam.Clients
 {
-    internal class DMarketClient // : IMarketClient
+    internal class DMarketClient : IMarketClient
     {
         private const string RootUrl = "https://api.dmarket.com";
 
+        private readonly HttpClient _httpClient;
         private readonly string _publicKey;
         private readonly string _secretKey;
 
-        public DMarketClient(string publicKey, string secretKey)
+        public DMarketClient(HttpClient httpClient, string publicKey, string secretKey)
         {
+            _httpClient = httpClient;
             _publicKey = publicKey;
             _secretKey = secretKey;
         }
 
-        public async Task<decimal> GetBalanceAsync()
-        {
-            var query = "/account/v1/balance";
-            var client = new HttpClient();
-            AddApiHeaders(client, HttpMethod.Get, query, string.Empty);
-            var response = await client.GetAsync(RootUrl + query);
-            if (response.StatusCode != HttpStatusCode.OK)
-                return decimal.Zero;
-
-            JObject json = JObject.Parse(await response.Content.ReadAsStringAsync());
-            return json.Value<int>("usd") / 100m;
-        }
-
-        public Task<BuffPage> GetItemsAsync(int page, decimal maxPriceCny, string quality)
+        public Task<bool> BuyItemAsync(string marketHashName, decimal price)
         {
             throw new NotImplementedException();
         }
 
-        public async Task<Dictionary<string, decimal>> GetPricesAsync(Item[] items)
+        public async Task<decimal> GetActiveBalanceAsync()
         {
-            var queryBuilder = new StringBuilder("/price-aggregator/v1/aggregated-prices?");
-            foreach (var item in items)
-            {
-                queryBuilder.Append($"Titles={HttpUtility.UrlEncode(item.MarketHashName)}&");
-            }
+            var endPoint = "/account/v1/balance";
+            var url = new Uri(RootUrl + endPoint);
+            AddApiHeaders(endPoint, string.Empty, HttpMethod.Get);
+            var response = await _httpClient.GetStringAsync(url);
+            JObject json = JObject.Parse(response);
 
-            string query = queryBuilder.ToString();
-            var client = new HttpClient();
-            AddApiHeaders(client, HttpMethod.Get, query, string.Empty);
-            var response = await client.GetAsync(RootUrl + query);
-            JObject json = JObject.Parse(await response.Content.ReadAsStringAsync());
-
-            var prices = new Dictionary<string, decimal>();
-            foreach (var item in (JArray)json["AggregatedTitles"])
-            {
-                prices.Add(item["MarketHashName"].ToString(), item["Offers"]["BestPrice"].Value<decimal>());
-            }
-            return prices;
+            return json.Value<int>("usd") / 100m;
         }
 
-        private void AddApiHeaders(HttpClient client, HttpMethod method, string query, string body)
+        public Task<decimal> GetItemPriceAsync(string marketHashName)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<bool> SellItemAsync(string marketHashName)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void AddApiHeaders(string query, string body, HttpMethod method)
         {
             long timestamp = DateTimeOffset.Now.ToUnixTimeSeconds();
-            client.DefaultRequestHeaders.Add("X-Api-Key", _publicKey);
-            client.DefaultRequestHeaders.Add("X-Sign-Date", timestamp.ToString());
-            client.DefaultRequestHeaders.Add("X-Request-Sign", Sign(method, query, body, timestamp));
+            _httpClient.DefaultRequestHeaders.Add("X-Api-Key", _publicKey);
+            _httpClient.DefaultRequestHeaders.Add("X-Sign-Date", timestamp.ToString());
+            _httpClient.DefaultRequestHeaders.Add("X-Request-Sign", Sign(method, query, body, timestamp));
         }
 
         private string Sign(HttpMethod method, string query, string body, long timestamp)

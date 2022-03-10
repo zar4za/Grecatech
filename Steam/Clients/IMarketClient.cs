@@ -1,6 +1,4 @@
-﻿using Grecatech.Steam.Clients.Models;
-
-namespace Grecatech.Steam.Clients
+﻿namespace Grecatech.Steam.Clients
 {
     public interface IMarketClient
     {

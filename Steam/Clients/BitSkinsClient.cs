@@ -27,20 +27,6 @@ public class BitSkinsClient// : IMarketClient
     {
         var url = new Uri($"{RootUrl}/get_account_balance/?api_key={_apiKey}&code={_totp.ComputeTotp()}");
         var response = await _client.GetStringAsync(url);
-
-        /*  RESPONSE JSON
-         *  
-         *  {
-         *      "status": "success",
-         *      "data": {
-         *          "available_balance": "0.0000",
-         *          "pending_withdrawals": "0.0000",
-         *          "withdrawable_balance": "0.0000",
-         *          "couponable_balance": "0.0000"
-         *      }
-         *  }
-         */
-
         var balance = JObject.Parse(response);
         return Convert.ToDecimal(balance["available_balance"]);
     }
