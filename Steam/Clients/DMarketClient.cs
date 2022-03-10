@@ -7,7 +7,7 @@ using System.Web;
 
 namespace Grecatech.Steam.Clients
 {
-    internal class DMarketClient : IMarketClient
+    internal class DMarketClient // : IMarketClient
     {
         private const string RootUrl = "https://api.dmarket.com";
 

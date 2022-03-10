@@ -24,6 +24,8 @@ namespace Grecatech.Steam.Clients
             _itemIds = JObject.Parse(File.ReadAllText("idsb.json")).ToObject<Dictionary<string, int>>();
         }
 
+        public readonly decimal Fees = 0.975m;
+
         public async Task<decimal> GetActiveBalanceAsync()
         {
             var url = new Uri($"{RootUrl}/asset/get_brief_asset/?_={Nonce}");
@@ -55,7 +57,7 @@ namespace Grecatech.Steam.Clients
             var cny = json["data"]["items"][0]["price"].Value<decimal>();
             var rate = await GetUsdConvertRateAsync();
 
-            return cny / rate;
+            return cny * rate;
         }
 
         public async Task<bool> BuyItemAsync(string marketHashName, decimal price)

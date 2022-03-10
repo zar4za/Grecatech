@@ -2,7 +2,7 @@
 
 namespace Grecatech.Steam.Clients.Models
 {
-    internal class BuffPage
+    public class BuffPage
     {
         public List<Item> Items { get; set; }
         public int TotalPage { get; set; }
