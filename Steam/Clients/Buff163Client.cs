@@ -4,6 +4,7 @@ namespace Grecatech.Steam.Clients
 {
     public class Buff163Client : IMarketClient
     {
+        private const int PointDigits = 4;
         private const string RootUrl = "https://buff.163.com/api";
         private readonly string _session;
         private HttpClient _httpClient;
@@ -36,9 +37,8 @@ namespace Grecatech.Steam.Clients
                 return decimal.Zero;
 
             var cny = json["data"]["alipay_amount"].Value<decimal>();
-            var rate = await GetUsdConvertRateAsync();
 
-            return cny * rate;
+            return await ConvertToUsd(cny);
         }
 
         public async Task<decimal> GetItemPriceAsync(string marketHashName)
@@ -55,9 +55,8 @@ namespace Grecatech.Steam.Clients
                 return decimal.Zero;
 
             var cny = json["data"]["items"][0]["price"].Value<decimal>();
-            var rate = await GetUsdConvertRateAsync();
 
-            return cny * rate;
+            return await ConvertToUsd(cny);
         }
 
         public async Task<bool> BuyItemAsync(string marketHashName, decimal price)
@@ -82,6 +81,12 @@ namespace Grecatech.Steam.Clients
 
             var rate = json["data"]["buff_price_currency_rate_base_cny"].Value<decimal>();
             return rate;
+        }
+
+        private async Task<decimal> ConvertToUsd(decimal cny)
+        {
+            var rate = await GetUsdConvertRateAsync();
+            return Math.Round(cny * rate, PointDigits);
         }
     }
 }
