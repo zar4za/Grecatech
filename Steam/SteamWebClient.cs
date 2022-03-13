@@ -1,6 +1,7 @@
 ﻿using Grecatech.Steam.Encryption;
 using Grecatech.Steam.Models;
 using Grecatech.Steam.Security;
+using System.Net;
 using System.Text.Json;
 
 namespace Grecatech.Steam
@@ -41,7 +42,7 @@ namespace Grecatech.Steam
         public delegate Task<Captcha> CaptchaHandler(string captchaGid);
         public delegate Task<SteamGuardCode> SteamGuardHandler();
 
-        public async Task<string> AuthorizeAsync(string username, string password)
+        public async Task<CookieContainer> AuthorizeAsync(string username, string password)
         {
             RSAModel rsa = await GetRSAKeysAsync(username);
             string encryptedPassword = RSAProvider.EncryptPassword(password, rsa);
@@ -49,7 +50,7 @@ namespace Grecatech.Steam
             LoginResponse? loginResponse = null;
             Captcha? captcha = null;
             SteamGuardCode? code = null;
-            string loginJson;
+            CookieContainer cookieContainer = new CookieContainer();
             do
             {
                 if (loginResponse != null && loginResponse.CaptchaNeeded)
@@ -61,23 +62,32 @@ namespace Grecatech.Steam
                 HttpContent content = new LoginPost(username, encryptedPassword, rsa, captcha!, code!).ToHttpContent();
                 var response = await _client.PostAsync("https://steamcommunity.com/login/dologin", content);
                 response.EnsureSuccessStatusCode();
-                loginJson = await response.Content.ReadAsStringAsync();
 
-                loginResponse = JsonSerializer.Deserialize<LoginResponse>(loginJson)!;
+                loginResponse = JsonSerializer.Deserialize<LoginResponse>(await response.Content.ReadAsStringAsync())!;
                 if (code != null && loginResponse.TwoFactor)
                     _warningHandler?.Invoke("Неправильный код.");
-
+                foreach (var cookie in response.Headers.SingleOrDefault(header => header.Key == "Set-Cookie").Value)
+                {
+                    cookieContainer.SetCookies(new Uri("https://steamcommunity.com/"), cookie);
+                }
             } while (loginResponse.CaptchaNeeded || loginResponse.TwoFactor);
 
             if (loginResponse.Success)
             {
                 _isAuthorized = loginResponse.Success;
                 _notificationHandler?.Invoke("Бот авторизирован в Steam");
+                _client.DefaultRequestHeaders.Add("Cookie", cookieContainer.ToString());
+                var response = await _client.GetAsync("https://steamcommunity.com/");
+
+                foreach (var cookie in response.Headers.SingleOrDefault(header => header.Key == "Set-Cookie").Value)
+                {
+                    cookieContainer.SetCookies(new Uri("https://steamcommunity.com/"), cookie);
+                }
             }
             else
                 _warningHandler?.Invoke("Не удалось авторизоваться!");
 
-            return loginJson;
+            return cookieContainer;
         }
         private async Task<RSAModel> GetRSAKeysAsync(string username)
         {

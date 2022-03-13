@@ -64,8 +64,6 @@ public class BitSkinsClient// : IMarketClient
         var response = await _client.GetStringAsync(url);
     }
 
-    //TODO: GetInventoryOnSell
-
     public async void GetSpecificItemsOnSaleAsync(string appId, string itemIds)
     {
         var url = new Uri(
@@ -93,15 +91,36 @@ public class BitSkinsClient// : IMarketClient
         var response = await _client.GetStringAsync(url);
     }
 
-    public async Task<long?> BuyItemAsync(string marketHashName, decimal price)
+    public async Task<string> BuyItemAsync(string marketHashName, decimal price)
     {
         var item = await GetInventoryOnSaleAsync(marketHashName);
         if (item == null || item?.Value != price)
-            return null;
+            return string.Empty;
 
         var url = new Uri($"{RootUrl}/buy_item/?api_key={_apiKey}&code={_totp.ComputeTotp()}&item_ids={item?.Key}&prices={price.ToString("F2").Replace(',','.')}&allow_trade_delayed_purchases=false");
         var response = await _client.GetStringAsync(url);
-        return null;
+        var json = JObject.Parse(response);
+
+        /*  {
+         *      items: [
+         *          {
+         *              app_id: '730',
+         *              context_id: '2',
+         *              item_id: '123641644157',
+         *              class_id: '993311319',
+         *              instance_id: '519977149',
+         *              market_hash_name: 'G3SG1 | Orange Kimono (Well-Worn)',
+         *              price: '0.05'
+         *          }],
+         *      trade_tokens: [ '45d4c690482564a3' ]
+         *   }
+         */
+
+        if (!json.ContainsKey("status") || !(json["status"].Value<string>() == "success"))
+            return string.Empty;
+
+        var tradeToken = json["data"]["trade_tokens"][0].Value<string>();
+        return tradeToken;
     }
 
     public async void SellItemAsync(string itemIds, string prices, string appId)

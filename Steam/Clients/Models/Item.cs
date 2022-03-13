@@ -4,21 +4,30 @@ namespace Grecatech.Steam.Clients.Models
 {
     public class Item
     {
-        public string MarketHashName { get; set; }
-        public decimal SellMinPrice { get; set; }
-        public decimal BuyMaxPrice { get; set; }
+        public string AssetId { get; }
+        public string ClassId { get; }
+        public string InstanceId { get; }
+        public string MarketHashName { get; }
+        public string TradeToken { get; }
 
-        public Item(string marketHashName, decimal sellMinPrice, decimal buyMaxPrice)
+        public Item(string assetId, string classId, string instanceId, string marketHashName, string tradeToken)
         {
+            AssetId = assetId;
+            ClassId = classId;
+            InstanceId = instanceId;
             MarketHashName = marketHashName;
-            SellMinPrice = sellMinPrice;
-            BuyMaxPrice = buyMaxPrice;
+            TradeToken = tradeToken;
         }
 
-        public static Item Parse(JToken jToken)
+        public static Item Parse(JObject json)
         {
-            return new Item(jToken["market_hash_name"]?.ToString() ?? jToken["MarketHashName"].ToString(),
-                jToken["sell_min_price"]?.Value<decimal>() ?? jToken["BestPrice"].Value<decimal>(), jToken["buy_max_price"].Value<decimal>());
+            var assetId = json["data"]["items"][0]["item_id"].ToString();
+            var classId = json["data"]["items"][0]["class_id"].ToString();
+            var instanceId = json["data"]["items"][0]["instance_id"].ToString();
+            var MarketHashName = json["data"]["items"][0]["market_hash_name"].ToString();
+            var tradeToken = json["data"]["trade_tokens"][0].ToString();
+
+            return new Item(assetId, classId, instanceId, MarketHashName, tradeToken);
         }
     }
 }
