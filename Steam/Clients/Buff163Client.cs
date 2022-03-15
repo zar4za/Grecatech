@@ -62,13 +62,13 @@ namespace Grecatech.Steam.Clients
             return await ConvertToUsd(cny);
         }
 
-        public async Task<long?> BuyItemAsync(string marketHashName, decimal price)
+        public async Task<string?> BuyItemAsync(string marketHashName, decimal price)
         {
             throw new NotImplementedException();
         }
 
         //POST: https://buff.163.com/market/sell_order/preview/manual_plus
-        public async Task<bool> SellItemAsync(string marketHashName)
+        public async Task<string?> SellItemAsync(string marketHashName, decimal price)
         {
             throw new NotImplementedException();
         }

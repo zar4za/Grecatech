@@ -38,12 +38,12 @@ namespace Grecatech.Steam.Clients
             throw new NotImplementedException();
         }
 
-        public Task<long?> BuyItemAsync(string marketHashName, decimal price)
+        public Task<string?> BuyItemAsync(string marketHashName, decimal price)
         {
             throw new NotImplementedException();
         }
 
-        public Task<bool> SellItemAsync(string marketHashName)
+        public Task<string?> SellItemAsync(string marketHashName, decimal price)
         {
             throw new NotImplementedException();
         }
