@@ -10,8 +10,8 @@ namespace GrecatechTests.Steam.Clients
     public class BitSkinsClientTests
     {
         private const string MockServerUrl = "https://799dcc1f-ec84-438c-8b47-938e80f177e3.mock.pstmn.io/api/v1";
-        private const string ApiKey = "08d05cea-b61f-4d47-afaf-bd92b0e01912";
-        private const string TwoFactorSecret = "GT2NHO4HBSGKTU5";
+        private const string ApiKey = "SAMPLEAPI-KEY-4444-aaaa-bbbbbbbbbbbb";
+        private const string TwoFactorSecret = "SAMPLESECRETKEY";
 
         private HttpClient _httpClient;
 
