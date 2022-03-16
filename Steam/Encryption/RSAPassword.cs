@@ -1,6 +1,6 @@
 ﻿namespace Grecatech.Steam.Encryption
 {
-    public class RSAPassword
+    internal class RSAPassword
     {
         public readonly long Timestamp;
         public readonly string EncodedString;

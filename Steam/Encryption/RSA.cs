@@ -4,6 +4,22 @@ namespace Grecatech.Steam.Encryption
 {
     internal class RSA
     {
+        [JsonPropertyName("success")]
+        public readonly bool Success;
+
+        [JsonPropertyName("publickey_mod")]
+        public readonly string Modulus;
+
+        [JsonPropertyName("publickey_exp")]
+        public readonly string Exponent;
+
+        [JsonPropertyName("timestamp")]
+        public readonly long Timestamp;
+
+        [JsonPropertyName("token_gid")]
+        public readonly string TokenGid;
+
+
         [JsonConstructor]
         public RSA(bool success, string modulus, string exponent, long timestamp, string tokenGid)
         {
@@ -13,20 +29,5 @@ namespace Grecatech.Steam.Encryption
             Timestamp = timestamp;
             TokenGid = tokenGid;
         }
-
-        [JsonPropertyName("success")]
-        public bool Success { get; }
-
-        [JsonPropertyName("publickey_mod")]
-        public string Modulus { get; }
-
-        [JsonPropertyName("publickey_exp")]
-        public string Exponent { get; }
-
-        [JsonPropertyName("timestamp")]
-        public long Timestamp { get; }
-
-        [JsonPropertyName("token_gid")]
-        public string TokenGid { get; }
     }
 }

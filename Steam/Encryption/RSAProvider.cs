@@ -32,13 +32,14 @@ namespace Grecatech.Steam.Encryption
             return rsaResult;
         }
 
-        private async Task<Models.RSA> GetRSAKeysAsync(string username)
+        private async Task<RSA> GetRSAKeysAsync(string username)
         {
+            var url = new Uri("https://steamcommunity.com/login/getrsakey");
             var data = new Dictionary<string, string> { { "username", username } };
             var content = new FormUrlEncodedContent(data);
-            var response = await _httpClient.PostAsync("https://steamcommunity.com/login/getrsakey", content);
+            var response = await _httpClient.PostAsync(url, content);
             var rsaJson = await response.Content.ReadAsStringAsync();
-            var rsaResponse = JsonSerializer.Deserialize<Models.RSA>(rsaJson)!;
+            var rsaResponse = JsonSerializer.Deserialize<RSA>(rsaJson)!;
             return rsaResponse;
         }
 
