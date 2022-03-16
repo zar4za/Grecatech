@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json.Linq;
 
-namespace Grecatech.Steam.Clients
+namespace Grecatech.Market
 {
     public class Buff163Client : IMarketClient
     {
@@ -79,7 +79,7 @@ namespace Grecatech.Steam.Clients
             var response = await _httpClient.GetStringAsync(url);
             var json = JObject.Parse(response);
 
-            if (!json.ContainsKey("code") || json["code"].Value<string>() != "OK")
+            if (!json.ContainsKey("code") || (json["code"].Value<string>() != "OK"))
                 return decimal.Zero;
 
             var rate = json["data"]["buff_price_currency_rate_base_cny"].Value<decimal>();

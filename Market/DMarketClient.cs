@@ -1,11 +1,11 @@
 ﻿using Chaos.NaCl;
-using Grecatech.Steam.Clients.Models;
+using Grecatech.Market.Models;
 using Newtonsoft.Json.Linq;
 using System.Net;
 using System.Text;
 using System.Web;
 
-namespace Grecatech.Steam.Clients
+namespace Grecatech.Market
 {
     internal class DMarketClient : IMarketClient
     {

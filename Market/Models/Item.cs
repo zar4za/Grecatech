@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json.Linq;
 
-namespace Grecatech.Steam.Clients.Models
+namespace Grecatech.Market.Models
 {
     public class Item
     {

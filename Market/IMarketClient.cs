@@ -1,4 +1,4 @@
-﻿namespace Grecatech.Steam.Clients
+﻿namespace Grecatech.Market
 {
     public interface IMarketClient
     {

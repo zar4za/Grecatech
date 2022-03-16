@@ -1,10 +1,10 @@
-﻿using Grecatech.Steam.Clients;
+﻿using Grecatech.Market;
 using NUnit.Framework;
 using RichardSzalay.MockHttp;
 using System.Net.Http;
 using System.Threading.Tasks;
 
-namespace GrecatechTests.Steam.Clients
+namespace GrecatechTests.Market
 {
     [TestFixture]
     public class BitSkinsClientTests
@@ -29,10 +29,10 @@ namespace GrecatechTests.Steam.Clients
             var mockHandler = new MockHttpMessageHandler();
             mockHandler.Expect("https://bitskins.com/api/v1/get_account_balance/")
                 .Respond("application/json", response);
-            var bitSkinsClient = new BitSkinsClient(new HttpClient(mockHandler), ApiKey, TwoFactorSecret);
+            var client = new BitSkinsClient(new HttpClient(mockHandler), ApiKey, TwoFactorSecret);
 
             // Act
-            var result = await bitSkinsClient.GetActiveBalanceAsync();
+            var result = await client.GetActiveBalanceAsync();
 
             // Assert
             Assert.AreEqual(2.8m, result);
@@ -48,10 +48,10 @@ namespace GrecatechTests.Steam.Clients
             var mockHandler = new MockHttpMessageHandler();
             mockHandler.Expect("https://bitskins.com/api/v1/get_inventory_on_sale/")
                 .Respond("application/json", response);
-            var bitSkinsClient = new BitSkinsClient(new HttpClient(mockHandler), ApiKey, TwoFactorSecret);
+            var client = new BitSkinsClient(new HttpClient(mockHandler), ApiKey, TwoFactorSecret);
 
             // Act
-            var result = await bitSkinsClient.GetItemPriceAsync(marketHashName);
+            var result = await client.GetItemPriceAsync(marketHashName);
 
             // Assert
             Assert.AreEqual(0.07m, result);
@@ -72,10 +72,10 @@ namespace GrecatechTests.Steam.Clients
                 .Respond("application/json", priceResponse);
             mockHandler.Expect("https://bitskins.com/api/v1/buy_item/")
                 .Respond("application/json", buyResponse);
-            var bitSkinsClient = new BitSkinsClient(new HttpClient(mockHandler), ApiKey, TwoFactorSecret);
+            var client = new BitSkinsClient(new HttpClient(mockHandler), ApiKey, TwoFactorSecret);
 
             // Act
-            var result = await bitSkinsClient.BuyItemAsync(marketHashName, price);
+            var result = await client.BuyItemAsync(marketHashName, price);
 
             // Assert
             Assert.AreEqual(tradeToken, result);
@@ -93,10 +93,10 @@ namespace GrecatechTests.Steam.Clients
             var mockHandler = new MockHttpMessageHandler();
             mockHandler.Expect("https://bitskins.com/api/v1/list_item_for_sale/")
                 .Respond("application/json", response);
-            var bitSkinsClient = new BitSkinsClient(new HttpClient(mockHandler), ApiKey, TwoFactorSecret);
+            var client = new BitSkinsClient(new HttpClient(mockHandler), ApiKey, TwoFactorSecret);
 
             // Act
-            var result = await bitSkinsClient.SellItemAsync(assetId, price);
+            var result = await client.SellItemAsync(assetId, price);
 
             // Assert
             Assert.AreEqual(tradeToken, result);

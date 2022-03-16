@@ -1,12 +1,12 @@
-﻿using Grecatech.Steam.Clients.Models;
+﻿using Grecatech.Market.Models;
 using Newtonsoft.Json.Linq;
 using OtpNet;
-using Grecatech.Steam.Clients;
+using Grecatech.Market;
 using System.Web;
 using System.Text.Json;
 using System.Net;
 
-namespace Grecatech.Steam.Clients;
+namespace Grecatech.Market;
 
 public class BitSkinsClient : IMarketClient
 {
