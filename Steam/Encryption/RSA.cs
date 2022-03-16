@@ -1,11 +1,11 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace Grecatech.Steam.Models
+namespace Grecatech.Steam.Encryption
 {
-    internal class RSAModel : IResponse
+    internal class RSA
     {
         [JsonConstructor]
-        public RSAModel(bool success, string modulus, string exponent, string timestamp, string tokenGid)
+        public RSA(bool success, string modulus, string exponent, long timestamp, string tokenGid)
         {
             Success = success;
             Modulus = modulus;
@@ -24,7 +24,7 @@ namespace Grecatech.Steam.Models
         public string Exponent { get; }
 
         [JsonPropertyName("timestamp")]
-        public string Timestamp { get; }
+        public long Timestamp { get; }
 
         [JsonPropertyName("token_gid")]
         public string TokenGid { get; }

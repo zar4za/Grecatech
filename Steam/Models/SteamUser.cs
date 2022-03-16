@@ -7,21 +7,20 @@ using System.Threading.Tasks;
 
 namespace Grecatech.Steam.Models
 {
-    internal class SteamUser
+    public class SteamUser
     {
-        public SteamUser(JToken transferParameters, string apiKey)
-        {
-            _steamId = transferParameters["steamid"].Value<string>();
-            _tokenSecure = transferParameters["token_secure"].Value<string>();
-            _auth = transferParameters["auth"].Value<string>();
-            _webCookie = transferParameters["webcookie"].Value<string>();
-            _apiKey = apiKey;
-        }
+        public string Username { get; }
+        public string Password { get; }
+        public string ApiKey { get; }
+        public string TwoFactorSecret { get; }
 
-        private string _steamId;
-        private string _tokenSecure;
-        private string _auth;
-        private string _webCookie;
-        private string _apiKey;
+
+        public SteamUser(string username, string password, string apiKey, string twoFactorSecret)
+        {
+            Username = username;
+            Password = password;
+            ApiKey = apiKey;
+            TwoFactorSecret = twoFactorSecret;
+        }
     }
 }

@@ -1,27 +1,50 @@
 ﻿using Grecatech.Steam.Models;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 
 namespace Grecatech.Steam.Encryption
 {
     internal class RSAProvider
     {
-        public static string EncryptPassword(string password, RSAModel rsaResponse)
+        public RSAProvider(HttpClient httpClient)
         {
-            var rsa = new RSACryptoServiceProvider();
+            _httpClient = httpClient;
+        }
+
+        private readonly HttpClient _httpClient;
+
+        public async Task<RSAPassword> EncryptPassword(SteamUser user)
+        {
+            var rsa = await GetRSAKeysAsync(user.Username);
+            var rsaProvider = new RSACryptoServiceProvider();
             var rsaParameters = new RSAParameters
             {
-                Exponent = HexStringToByteArray(rsaResponse.Exponent),
-                Modulus = HexStringToByteArray(rsaResponse.Modulus)
+                Exponent = HexStringToByteArray(rsa.Exponent),
+                Modulus = HexStringToByteArray(rsa.Modulus)
             };
-            rsa.ImportParameters(rsaParameters);
-            byte[] bytePassword = Encoding.ASCII.GetBytes(password);
-            byte[] encodedPassword = rsa.Encrypt(bytePassword, false);
-            return Convert.ToBase64String(encodedPassword);
+
+            rsaProvider.ImportParameters(rsaParameters);
+            var bytePassword = Encoding.ASCII.GetBytes(user.Password);
+            var  encodedPassword = rsaProvider.Encrypt(bytePassword, false);
+
+            var rsaResult = new RSAPassword(rsa.Timestamp, Convert.ToBase64String(encodedPassword));
+            return rsaResult;
         }
+
+        private async Task<Models.RSA> GetRSAKeysAsync(string username)
+        {
+            var data = new Dictionary<string, string> { { "username", username } };
+            var content = new FormUrlEncodedContent(data);
+            var response = await _httpClient.PostAsync("https://steamcommunity.com/login/getrsakey", content);
+            var rsaJson = await response.Content.ReadAsStringAsync();
+            var rsaResponse = JsonSerializer.Deserialize<Models.RSA>(rsaJson)!;
+            return rsaResponse;
+        }
+
         private static byte[] HexStringToByteArray(string hexString)
         {
-            MemoryStream stream = new MemoryStream(hexString.Length / 2);
+            using var stream = new MemoryStream(hexString.Length / 2);
 
             for (int i = 0; i < hexString.Length; i += 2)
             {
