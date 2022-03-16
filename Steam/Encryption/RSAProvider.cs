@@ -26,7 +26,7 @@ namespace Grecatech.Steam.Encryption
 
             rsaProvider.ImportParameters(rsaParameters);
             var bytePassword = Encoding.ASCII.GetBytes(user.Password);
-            var  encodedPassword = rsaProvider.Encrypt(bytePassword, false);
+            var encodedPassword = rsaProvider.Encrypt(bytePassword, false);
 
             var rsaResult = new RSAPassword(rsa.Timestamp, Convert.ToBase64String(encodedPassword));
             return rsaResult;

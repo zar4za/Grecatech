@@ -2,10 +2,10 @@
 {
     internal class RSAPassword
     {
-        public readonly long Timestamp;
+        public readonly string Timestamp;
         public readonly string EncodedString;
 
-        public RSAPassword(long timestamp, string encodedString)
+        public RSAPassword(string timestamp, string encodedString)
         {
             Timestamp = timestamp;
             EncodedString = encodedString;

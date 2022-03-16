@@ -14,7 +14,7 @@ namespace Grecatech.Steam.Encryption
         public readonly string Exponent;
 
         [JsonPropertyName("timestamp")]
-        public readonly long Timestamp;
+        public readonly string Timestamp;
 
         [JsonPropertyName("token_gid")]
         public readonly string TokenGid;
