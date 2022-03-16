@@ -5,19 +5,19 @@ namespace Grecatech.Steam.Encryption
     internal class RSA
     {
         [JsonPropertyName("success")]
-        public readonly bool Success;
+        public bool Success { get; }
 
         [JsonPropertyName("publickey_mod")]
-        public readonly string Modulus;
+        public string Modulus { get; }
 
         [JsonPropertyName("publickey_exp")]
-        public readonly string Exponent;
+        public string Exponent { get; }
 
         [JsonPropertyName("timestamp")]
-        public readonly string Timestamp;
+        public long Timestamp { get; }
 
         [JsonPropertyName("token_gid")]
-        public readonly string TokenGid;
+        public string TokenGid { get; }
 
 
         [JsonConstructor]
