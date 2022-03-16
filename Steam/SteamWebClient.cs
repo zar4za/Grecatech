@@ -1,8 +1,10 @@
 ﻿using Grecatech.Steam.Encryption;
 using Grecatech.Steam.Models;
 using Grecatech.Steam.Security;
+using Newtonsoft.Json.Linq;
 using System.Net;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace Grecatech.Steam
 {
@@ -32,18 +34,26 @@ namespace Grecatech.Steam
             _steamGuardHandler = steamGuardHandler;
         }
 
+        private const string RootUrl = "https://api.steampowered.com";
+        private const long ValveMagicConstant = 76561197960265728;
+
         private readonly HttpClient _client;
         private readonly CaptchaHandler _captchaHandler;
         private readonly SteamGuardHandler _steamGuardHandler;
         private readonly Action<string>? _notificationHandler;
         private readonly Action<string>? _warningHandler;
+
+
+        private CookieContainer _cookieContainer;
+        private string _apiKey;
         private bool _isAuthorized = false;
 
         public delegate Task<Captcha> CaptchaHandler(string captchaGid);
         public delegate Task<SteamGuardCode> SteamGuardHandler();
 
-        public async Task<CookieContainer> AuthorizeAsync(string username, string password)
+        public async Task<bool> AuthorizeAsync(string username, string password, string apiKey)
         {
+            _apiKey = apiKey;
             RSAModel rsa = await GetRSAKeysAsync(username);
             string encryptedPassword = RSAProvider.EncryptPassword(password, rsa);
 
@@ -87,8 +97,51 @@ namespace Grecatech.Steam
             else
                 _warningHandler?.Invoke("Не удалось авторизоваться!");
 
-            return cookieContainer;
+            _cookieContainer = cookieContainer;
+            return _isAuthorized;
         }
+
+        public async Task<KeyValuePair<string, long>?> SearchForTradeOffer(string tradeToken)
+        {
+            var offsetSeconds = 300;
+            var timeCutoff = DateTimeOffset.UtcNow.ToUnixTimeSeconds() - offsetSeconds;
+            var url = new Uri($"{RootUrl}/IEconService/GetTradeOffers/v1/?key={_apiKey}&get_received_offers=true&active_only=true&time_historical_cutoff={timeCutoff}");
+            var response = await _client.GetStringAsync(url);
+            var json = JObject.Parse(response);
+
+            if (!json.ContainsKey("response") || !json["response"].HasValues)
+                return null;
+
+            var tradeOffers = json["response"]?["trade_offers_received"].ToList<JToken>();
+            var i = tradeOffers?.FindIndex(offer => offer["message"].Value<string>().Contains(tradeToken));
+
+            if (i is null || i == -1)
+                return null;
+
+            var tradeOffer = tradeOffers![i.Value];
+            var pair = new KeyValuePair<string, long>(tradeOffer["tradeofferid"].Value<string>(), tradeOffer["accountid_other"].Value<int>() + ValveMagicConstant);
+            return pair;
+        }
+
+        public async Task<bool> AcceptTradeOffer(string tradeOfferId, long partnerId)
+        {
+            var url = new Uri($"https://steamcommunity.com/tradeoffer/{tradeOfferId}/accept");
+            var cookies = _cookieContainer.GetCookies(new Uri("https://steamcommunity.com/"));
+            var payload = new Dictionary<string, string>()
+            {
+                { "sessionid", cookies["sessionid"]!.Value },
+                { "serverid", "1" },
+                { "tradeofferid", tradeOfferId },
+                { "partner", partnerId.ToString() },
+                { "captcha", "" }
+            };
+            var content = new FormUrlEncodedContent(payload);
+
+            _client.DefaultRequestHeaders.Add("Cookie", _cookieContainer.ToString());
+            var response = await _client.PostAsync(url, content);
+            return response.StatusCode == HttpStatusCode.OK;
+        }
+
         private async Task<RSAModel> GetRSAKeysAsync(string username)
         {
             var data = new Dictionary<string, string> { { "username", username } };
