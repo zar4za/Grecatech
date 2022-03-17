@@ -4,7 +4,7 @@ using System.Text.Json;
 
 namespace Grecatech.Steam
 {
-    public class SteamWebApi
+    internal class SteamWebApi
     {
         private const string SteamWebApiUrl = "https://api.steampowered.com";
 
