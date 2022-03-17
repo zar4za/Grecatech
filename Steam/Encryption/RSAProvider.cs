@@ -14,7 +14,7 @@ namespace Grecatech.Steam.Encryption
 
         private readonly HttpClient _httpClient;
 
-        public async Task<RSAPassword> EncryptPassword(SteamUser user)
+        public async Task<RSAPassword> EncryptPasswordAsync(SteamUser user)
         {
             var rsa = await GetRSAKeysAsync(user.Username);
             var rsaProvider = new RSACryptoServiceProvider();

@@ -14,14 +14,14 @@ namespace Grecatech.Steam.Encryption
         public string Exponent { get; }
 
         [JsonPropertyName("timestamp")]
-        public long Timestamp { get; }
+        public string Timestamp { get; }
 
         [JsonPropertyName("token_gid")]
         public string TokenGid { get; }
 
 
         [JsonConstructor]
-        public RSA(bool success, string modulus, string exponent, long timestamp, string tokenGid)
+        public RSA(bool success, string modulus, string exponent, string timestamp, string tokenGid)
         {
             Success = success;
             Modulus = modulus;
