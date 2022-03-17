@@ -5,7 +5,7 @@ namespace Grecatech.Steam.Models
 {
     internal class LoginRequestContent
     {
-        public LoginRequestContent(string username, RSAPassword password, Captcha captcha = null!, SteamGuardCode guard = null!)
+        public LoginRequestContent(string username, RSAPassword password, Captcha? captcha = null, SteamGuardCode? guard = null)
         {
             string timestamp = DateTimeOffset.Now.ToUnixTimeMilliseconds().ToString();
             _postContent = new Dictionary<string, string>()
