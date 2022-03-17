@@ -2,12 +2,18 @@
 using Grecatech.Steam.Exceptions;
 using Grecatech.Steam.Models;
 using Grecatech.Steam.Security;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using System.Net;
+using System.Text;
 using System.Text.Json;
+using System.Threading.Tasks;
 
 namespace Grecatech.Steam
 {
-    internal class SteamWebInterface
+    public class SteamWebInterface
     {
         public SteamWebInterface(HttpClient httpClient, IUserInteractionProvider provider)
         {
@@ -79,8 +85,7 @@ namespace Grecatech.Steam
             if (_steamSession == null)
                 throw new NullReferenceException("Клиент не авторизирован. Вызовите .AuthorizeAsync() сначала.");
 
-
-            var url = new Uri($"https://steamcommunity/tradeoffer/{tradeOffer.TradeOfferId}/accept");
+            var url = new Uri($"https://steamcommunity.com/tradeoffer/{tradeOffer.TradeOfferId}/accept");
             var payload = new Dictionary<string, string>()
             {
                 { "sessionid", _steamSession!.SessionId },
@@ -90,13 +95,13 @@ namespace Grecatech.Steam
                 { "captcha", "" }
             };
 
-            using var request = new HttpRequestMessage(HttpMethod.Post, url);
-            request.Headers.Add("Referer", $"https://steamcommunity.com/tradeoffer/{tradeOffer.TradeOfferId}/");
             var content = new FormUrlEncodedContent(payload);
+            _httpClient.DefaultRequestHeaders.Add("Referer", $"https://steamcommunity.com/tradeoffer/{tradeOffer.TradeOfferId}/");
             content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/x-www-form-urlencoded");
-            var response = await _httpClient.SendAsync(request);
-            response.EnsureSuccessStatusCode();
 
+            var response = await _httpClient.PostAsync(url, content);
+            response.EnsureSuccessStatusCode();
+            _httpClient.DefaultRequestHeaders.Remove("Referer");
             return response.StatusCode == HttpStatusCode.OK;
         }
 
