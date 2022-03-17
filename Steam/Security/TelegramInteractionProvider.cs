@@ -3,9 +3,9 @@ using Telegram.Bot.Types;
 
 namespace Grecatech.Steam.Security
 {
-    public class TelegramCaptchaBot : IUserInteractionProvider
+    public class TelegramInteractionProvider : IUserInteractionProvider
     {
-        public TelegramCaptchaBot(HttpClient client, string token, long chatId)
+        public TelegramInteractionProvider(HttpClient client, string token, long chatId)
         {
             _httpClient = client;
             _botClient = new TelegramBotClient(token, client);
