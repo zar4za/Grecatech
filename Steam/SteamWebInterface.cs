@@ -10,6 +10,7 @@ using System.Net;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using SteamAuth;
 
 namespace Grecatech.Steam
 {
@@ -22,6 +23,22 @@ namespace Grecatech.Steam
             _steamGuardHandler = provider.RequestSteamGuardAsync;
             _notificationHandler = provider.Notify;
             _warningHandler = provider.Warn;
+        }
+
+        public SteamWebInterface(HttpClient httpClient, IUserInteractionProvider provider, string sharedSecret)
+        {
+            _httpClient = httpClient;
+            _captchaHandler = provider.RequestSteamCaptchaAsync;
+            _notificationHandler = provider.Notify;
+            _warningHandler = provider.Warn;
+
+            var steamAuth = new SteamGuardAccount() { SharedSecret = sharedSecret };
+            var task = async () =>
+            {
+                var code = await Task.Run(steamAuth.GenerateSteamGuardCode);
+                return new SteamGuardCode(code);
+            };
+            _steamGuardHandler = task.Invoke;
         }
 
 
