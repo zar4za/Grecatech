@@ -1,10 +1,5 @@
-﻿using Grecatech.Market.Models;
-using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json.Linq;
 using OtpNet;
-using Grecatech.Market;
-using System.Web;
-using System.Text.Json;
-using System.Net;
 
 namespace Grecatech.Market;
 
