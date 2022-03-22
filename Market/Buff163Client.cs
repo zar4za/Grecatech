@@ -114,9 +114,11 @@ namespace Grecatech.Market
         public async Task<decimal> GetUsdConvertRateAsync()
         {
             var url = new Uri($"https://buff.163.com/account/api/user/info?_={Nonce}");
-            var response = await _httpClient.GetStringAsync(url);
-            var json = JsonNode.Parse(response)!.AsObject();
+            var request = CreateRequest(url);
+            var response = await _httpClient.SendAsync(request);
+            var json = JsonNode.Parse(await response.Content.ReadAsStringAsync())!.AsObject();
 
+            Console.WriteLine(json);
             EnsureCodeOk(json, "Не удалось получить курс валюты.");
 
             var rate = json["data"]!["buff_price_currency_rate_base_cny"]!.GetValue<decimal>();
@@ -131,7 +133,7 @@ namespace Grecatech.Market
 
         private async Task<decimal> GetIncomeAsync(decimal price)
         {
-            var url = new Uri($"{RootUrl}/market/batch/fee?game=csgo&prices={price}&is_change=0&check_price=1&_={Nonce}");
+            var url = new Uri($"{RootUrl}/market/batch/fee?game=csgo&prices={price}&_={Nonce}");
 
             var request = CreateRequest(url);
             var response = await _httpClient.SendAsync(request);
@@ -141,7 +143,8 @@ namespace Grecatech.Market
             EnsureCodeOk(json, "Невозможно проверить комиссию.");
             SetCookies(response);
 
-            var fee = json["data"]!["fees"]![0]!.GetValue<decimal>();
+            var fee = Convert.ToDecimal(json["data"]!["fees"]![0]!.GetValue<string>());
+
             return price - fee;
         }
 
@@ -165,6 +168,7 @@ namespace Grecatech.Market
             var content = new StringContent(json.ToJsonString());
             content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/json");
 
+            Console.WriteLine(content);
             var request = new HttpRequestMessage(HttpMethod.Post, url);
             var token = _cookies.SingleOrDefault(c => c.Name == "csrf_token")!.Value.Split(';')[0];
             request.Headers.Add("X-CSRFToken", token);
