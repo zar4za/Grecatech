@@ -4,8 +4,6 @@ namespace Grecatech.Steam.Models
 {
     public class Item
     {
-        [JsonPropertyName("contextid")]
-        public string ContextId { get; }
 
         [JsonPropertyName("assetid")]
         public string AssetId { get; }
@@ -16,9 +14,8 @@ namespace Grecatech.Steam.Models
         [JsonPropertyName("instanceid")]
         public string InstanceId { get; }
 
-        public Item(string contextId, string assetId, string classId, string instanceId)
+        public Item(string assetId, string classId, string instanceId)
         {
-            ContextId = contextId;
             AssetId = assetId;
             ClassId = classId;
             InstanceId = instanceId;
